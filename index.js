@@ -5,7 +5,6 @@ var through = require('through2');
 var objectAssign = require('object-assign');
 var file = require('vinyl-file');
 var revHash = require('rev-hash');
-var revPath = require('rev-path');
 var sortKeys = require('sort-keys');
 var modifyFilename = require('modify-filename');
 
@@ -21,6 +20,16 @@ function relPath(base, filePath) {
 	}
 
 	return newPath;
+}
+
+function revPath(pth, hash) {
+	if (arguments.length !== 2) {
+		throw new Error('`path` and `hash` required');
+	}
+
+	return modifyFilename(pth, function (filename, ext) {
+		return filename + ext;
+	});
 }
 
 function getManifestFile(opts, cb) {
@@ -141,7 +150,8 @@ plugin.manifest = function (pth, opts) {
 		var revisionedFile = relPath(file.base, file.path);
 		var originalFile = path.join(path.dirname(revisionedFile), path.basename(file.revOrigPath)).replace(/\\/g, '/');
 
-		manifest[originalFile] = revisionedFile;
+		// manifest[originalFile] = revisionedFile;
+		manifest[originalFile] = originalFile + '?v=' + file.revHash;
 
 		cb();
 	}, function (cb) {
